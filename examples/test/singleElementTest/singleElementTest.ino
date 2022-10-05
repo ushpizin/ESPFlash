@@ -7,9 +7,9 @@ void setup()
   delay(500);
   Serial.println("Starting!");
   Serial.println();
-  SPIFFS.begin();
-  Serial.println("Formatting SPIFFS. Will take a while...");
-  SPIFFS.format();
+  LittleFS.begin();
+  Serial.println("Formatting LittleFS. Will take a while...");
+  LittleFS.format();
 
   unitTest<bool>("bool");
   unitTest<char>("char");

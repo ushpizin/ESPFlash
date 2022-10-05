@@ -3,7 +3,7 @@ ESPFlashString.h
 
 Copyright (c) 2020 Dale Giancono. All rights reserved..
 This file defines the ESPFlashString class. It provides a user friendly
-way to store strings in SPIFFs.
+way to store strings in LittleFS.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@ ESPFlashString::ESPFlashString(const char* fileName, String defaultString)
 {
   this->defaultString = defaultString;
   this->espFlash.setFileName(fileName);
-  if(!SPIFFS.exists(fileName))
+  if(!LittleFS.exists(fileName))
   {
     set(this->defaultString);
   }
@@ -52,7 +52,7 @@ ESPFlashString::ESPFlashString(const char* fileName, const char* defaultString)
 {
   this->defaultString = defaultString;
   this->espFlash.setFileName(fileName);
-  if(!SPIFFS.exists(fileName))
+  if(!LittleFS.exists(fileName))
   {
     set(this->defaultString);
   }

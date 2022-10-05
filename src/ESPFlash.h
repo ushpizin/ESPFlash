@@ -25,7 +25,7 @@
 #include <FS.h>
 
 #if defined(ARDUINO_ARCH_ESP32)
-#include <SPIFFS.h>
+#include <LittleFS.h>
 #endif
 
 template<class T>
@@ -33,50 +33,50 @@ class ESPFlash
 {  
   public:
     ESPFlash();
-    /* Creates the ESPFlash instance. In practice it starts SPIFFS and gets the file name. */
+    /* Creates the ESPFlash instance. In practice it starts LittleFS and gets the file name. */
     ESPFlash(const char* fileName);
     /* Gets the number of elements of type T stored in the ESPFlash instance. 
-     *  In practice it gets the ESPFlash file length in bytes using SPIFFS and divides the result 
+     *  In practice it gets the ESPFlash file length in bytes using LittleFS and divides the result 
      *  by the size of type T.
      */
     uint32_t length(void);
     
-    /* Truncates the associated ESPFlash SPIFFS file and creates the first element containing type T. */
+    /* Truncates the associated ESPFlash LittleFS file and creates the first element containing type T. */
     /* Returns true if successful */
     bool set(const T data);
     /* Sets the element specified by the index parameter if it exists. */
     /* Returns true if successful */
     bool setElementAt(const T data, uint32_t index);
-    /* Truncates the associated ESPFlash SPIFFS file and creates elements specified by Type T. */
+    /* Truncates the associated ESPFlash LittleFS file and creates elements specified by Type T. */
     /* Returns true if successful */
     bool setElements(const T* data, uint32_t size);
-    /* Truncates the associated ESPFlash SPIFFS file and creates elements specified by Type T. 
+    /* Truncates the associated ESPFlash LittleFS file and creates elements specified by Type T. 
     that are stored using PROGMEM. */
     /* Returns true if successful */
     bool setElements_P(const T* data, uint32_t size);
     
-    /* Opens the associated ESPFlash SPIFFS file and appends element containing type T. */
+    /* Opens the associated ESPFlash LittleFS file and appends element containing type T. */
     /* Returns true if successful */
     bool append(const T data);
-    /* Opens the associated ESPFlash SPIFFS file and appends elements specified by Type T. */
+    /* Opens the associated ESPFlash LittleFS file and appends elements specified by Type T. */
     /* Returns true if successful */
     bool appendElements(const T* data, uint32_t size);
-    /* Opens the associated ESPFlash SPIFFS file and appends elements specified by Type T
+    /* Opens the associated ESPFlash LittleFS file and appends elements specified by Type T
     that are stored using PROGMEM. */
     /* Returns true if successful */
     bool appendElements_P(const T* data, uint32_t size);
     
-    /* Gets the first element of type T stored in the associated ESPFlash SPIFFS file if it exists */
+    /* Gets the first element of type T stored in the associated ESPFlash LittleFS file if it exists */
     T get(void);
     /* Gets the element of type T as specified by the index parameter if it exists. */
     T getElementAt(uint32_t index);
-    /* Gets elements of Type T from the start of the file stored in the associated ESPFlash SPIFFS file if it exists */
+    /* Gets elements of Type T from the start of the file stored in the associated ESPFlash LittleFS file if it exists */
     /* Returns the number of elements "got" */
     bool getFrontElements (T* data, uint32_t size);
-    /* Gets elements of Type T from the end of the file stored in the associated ESPFlash SPIFFS file if it exists */
+    /* Gets elements of Type T from the end of the file stored in the associated ESPFlash LittleFS file if it exists */
     /* Returns the number of elements "got" */
     bool getBackElements(T* data, uint32_t size);
-    /* Deletes the associated ESPFlash SPIFFS file. */
+    /* Deletes the associated ESPFlash LittleFS file. */
     /* Returns true if successful */
     void clear(void);
     void setFileName(const char*);
@@ -99,14 +99,14 @@ class ESPFlash
 
 template<class T> ESPFlash<T>::ESPFlash()
 {
-  SPIFFS.begin();      
+  LittleFS.begin();      
   return;
 };
 
 template<class T> ESPFlash<T>::ESPFlash(const char* fileName)
 {
   setFileName(fileName);
-  SPIFFS.begin();      
+  LittleFS.begin();      
   return;
 };
 
@@ -121,7 +121,7 @@ template<class T> uint32_t ESPFlash<T>::length(void)
   {
     sizeInBytes = 0;
     /* Open the file specified by the filename with read privileges*/
-    file = SPIFFS.open(this->fileName, "r");
+    file = LittleFS.open(this->fileName, "r");
     
     if(file)
     {
@@ -171,7 +171,7 @@ template<class T> T ESPFlash<T>::get(void)
   T value;
   if(isInitialised == true)
   {
-    File file = SPIFFS.open(this->fileName, "r");
+    File file = LittleFS.open(this->fileName, "r");
     file.read((uint8_t*)&value, sizeof(T));
     file.close();
   }
@@ -190,7 +190,7 @@ template<class T> T ESPFlash<T>::getElementAt(uint32_t index)
     value = (T)0; 
     if(index < length())
     {
-      file = SPIFFS.open(this->fileName, "r");
+      file = LittleFS.open(this->fileName, "r");
       if(file)
       {
         file.seek(index*sizeof(T), SeekSet);
@@ -221,7 +221,7 @@ template<class T> bool ESPFlash<T>::getFrontElements(T* data, uint32_t size)
     numberOfBytes = sizeof(T)*size;;
     bytesRead = 0;
     /* Open the file specified by the filename with read privileges*/
-    file = SPIFFS.open(this->fileName, "r");
+    file = LittleFS.open(this->fileName, "r");
     if(size <= length())
     {
       if(file)
@@ -255,7 +255,7 @@ template<class T> bool ESPFlash<T>::getBackElements(T* data, uint32_t size)
     numberOfBytes = sizeof(T)*size;
     firstElementIndex = 0;
     /* Open the file specified by the filename with read privileges*/
-    file = SPIFFS.open(this->fileName, "r");
+    file = LittleFS.open(this->fileName, "r");
     if(size < length())
     {
       firstElementIndex = file.size() - numberOfBytes;
@@ -281,7 +281,7 @@ template<class T> void ESPFlash<T>::clear(void)
 {  
   if(isInitialised == true)
   {
-    SPIFFS.remove(this->fileName);
+    LittleFS.remove(this->fileName);
   }
   return;
 };
@@ -299,11 +299,11 @@ template<class T> bool ESPFlash<T>::writeElement(const T data, WRITE_MODE mode)
     /*open file specified by fileName with write privileges*/
     if(WRITE_MODE::OVERWRITE == mode)
     {
-      file = SPIFFS.open(this->fileName, "w");
+      file = LittleFS.open(this->fileName, "w");
     }
     else if(ESPFlash::APPEND == mode)
     {
-      file = SPIFFS.open(this->fileName, "a");
+      file = LittleFS.open(this->fileName, "a");
     }
     else
     {
@@ -313,7 +313,7 @@ template<class T> bool ESPFlash<T>::writeElement(const T data, WRITE_MODE mode)
     
     if(file)
     {
-      /* Write type T to SPIFFS */
+      /* Write type T to LittleFS */
       bytesWritten = file.write((uint8_t*)&data, sizeof(T));
       /* Check if successful by the number of bytes written */
       /* If not successful, delete the file that was possibly 
@@ -325,7 +325,7 @@ template<class T> bool ESPFlash<T>::writeElement(const T data, WRITE_MODE mode)
       }
       else
       {
-        SPIFFS.remove(this->fileName);
+        LittleFS.remove(this->fileName);
       }
     }
     file.close();
@@ -348,11 +348,11 @@ template<class T> bool ESPFlash<T>::writeElements(const T* data, uint32_t size, 
     /*open file specified by fileName with write privileges*/
     if(WRITE_MODE::OVERWRITE == mode)
     {
-      file = SPIFFS.open(this->fileName, "w");
+      file = LittleFS.open(this->fileName, "w");
     }
     else if(WRITE_MODE::APPEND == mode)
     {
-      file = SPIFFS.open(this->fileName, "a");
+      file = LittleFS.open(this->fileName, "a");
     }
     else
     {
@@ -363,7 +363,7 @@ template<class T> bool ESPFlash<T>::writeElements(const T* data, uint32_t size, 
     if(file)
     {
       elementsSizeInBytes = sizeof(T)*size;
-      /* Write type T to SPIFFS */
+      /* Write type T to LittleFS */
       bytesWritten = file.write((uint8_t*)data, elementsSizeInBytes);
       /* Check if successful by the number of bytes written */
       /* If not successful, delete the file that was possibly 
@@ -375,7 +375,7 @@ template<class T> bool ESPFlash<T>::writeElements(const T* data, uint32_t size, 
       }
       else
       {
-        SPIFFS.remove(this->fileName);
+        LittleFS.remove(this->fileName);
       }
     }
     file.close();
@@ -402,11 +402,11 @@ template<class T> bool ESPFlash<T>::writeElements_P(const T* data, uint32_t size
     /*open file specified by fileName with write privileges*/
     if(WRITE_MODE::OVERWRITE == mode)
     {
-      file = SPIFFS.open(this->fileName, "w");
+      file = LittleFS.open(this->fileName, "w");
     }
     else if(WRITE_MODE::APPEND == mode)
     {
-      file = SPIFFS.open(this->fileName, "a");
+      file = LittleFS.open(this->fileName, "a");
     }
     else
     {
@@ -416,7 +416,7 @@ template<class T> bool ESPFlash<T>::writeElements_P(const T* data, uint32_t size
   
     if(file)
     {
-      /* Write type T to SPIFFS */
+      /* Write type T to LittleFS */
       bytesWritten = file.write((uint8_t*)buffer, elementsSizeInBytes);
       /* Check if successful by the number of bytes written */
       /* If not successful, delete the file that was possibly 
@@ -428,7 +428,7 @@ template<class T> bool ESPFlash<T>::writeElements_P(const T* data, uint32_t size
       }
       else
       {
-        SPIFFS.remove(this->fileName);
+        LittleFS.remove(this->fileName);
       }
     }
     file.close();

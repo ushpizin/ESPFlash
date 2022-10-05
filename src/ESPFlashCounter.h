@@ -4,7 +4,7 @@ ESPFlashCounter.h
 Copyright (c) 2020 Dale Giancono. All rights reserved..
 This file defines the ESPFlashCounter class. It can be used as a way
 of keeping count of something, with the counter value stored in flash 
-using SPIFFS. It's value can be set to any integer value, or the values
+using LittleFS. It's value can be set to any integer value, or the values
 can incremented and decremented. It can be reset to initial starting value
 (or 0 if that is not defined), and can be retreived in String or int form.
 It is particularly useful if I counter value is required through power 
@@ -46,7 +46,7 @@ ESPFlashCounter::ESPFlashCounter(const char* fileName, int initialValue)
 {
   this->initialValue = initialValue;
   this->espFlash.setFileName(fileName);
-  if(!SPIFFS.exists(fileName))
+  if(!LittleFS.exists(fileName))
   {
     set(this->initialValue);
   }
